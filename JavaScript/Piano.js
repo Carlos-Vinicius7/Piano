@@ -1,10 +1,11 @@
 const keys = document.querySelectorAll('.key');
-const checkbox = document.querySelector('.checkbox-keys')
+const checkbox = document.querySelector('.checkbox-keys');
 const switcher = document.querySelector('.switcher');
 const pianoKeys = document.querySelector('.Piano-keys');
 
 const playNote = (note) => {
     const audio = new Audio(`../Notes/${note}.wav`);
+    audio.currentTime = 0; // Permite tocar a nota rapidamente de novo
     audio.play();
 }
 
@@ -28,10 +29,21 @@ const handleMouseup = (key) => {
     key.style.background = 'white';
 }
 
+// Eventos de Mouse e Touch para mobile
 keys.forEach(key => {
-    key.addEventListener('mousedown', handleMousedown(key));
+    // Mouse
+    key.addEventListener('mousedown', () => handleMousedown(key));
+    key.addEventListener('mouseup', () => handleMouseup(key));
 
-    key.addEventListener('mouseup', handleMouseup(key));
+    // Touch (Celular/Tablet)
+    key.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        handleMousedown(key);
+    });
+    key.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        handleMouseup(key);
+    });
 });
 
 checkbox.addEventListener('change', ({target}) => {
@@ -42,10 +54,11 @@ checkbox.addEventListener('change', ({target}) => {
     }
 
     switcher.classList.remove('switcher--active');
+    pianoKeys.classList.add('disabled-keys');
 });
 
 const keyNotesMap = {
-    'Tab': () => handleMousedown(keys[0]) ,
+    'Tab': () => handleMousedown(keys[0]),
     '1': () => handleMousedown(keys[1]),
     'q': () => handleMousedown(keys[2]),
     '2': () => handleMousedown(keys[3]),
@@ -68,12 +81,11 @@ const keyNotesMap = {
     '[': () => handleMousedown(keys[20]),
     '0': () => handleMousedown(keys[21]),
     ']': () => handleMousedown(keys[22]),
-    '-': () => handleMousedown(keys[23]),
-    '=': () => handleMousedown(keys[24])
+    '-': () => handleMousedown(keys[23])
 };
 
 const keyNotesMap2 = {
-    'Tab': () => handleMouseup(keys[0]) ,
+    'Tab': () => handleMouseup(keys[0]),
     '1': () => handleMouseup(keys[1]),
     'q': () => handleMouseup(keys[2]),
     '2': () => handleMouseup(keys[3]),
@@ -100,11 +112,15 @@ const keyNotesMap2 = {
 };
 
 document.addEventListener('keydown', (event) => {
-    event.preventDefault();
-    keyNotesMap[event.key]();
+    if (keyNotesMap[event.key]) {
+        event.preventDefault();
+        keyNotesMap[event.key]();
+    }
 });
 
 document.addEventListener('keyup', (event) => {
-    event.preventDefault();
-    keyNotesMap2[event.key]();
+    if (keyNotesMap2[event.key]) {
+        event.preventDefault();
+        keyNotesMap2[event.key]();
+    }
 });
