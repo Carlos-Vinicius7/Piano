@@ -84,6 +84,7 @@ body{
 .key span{
     font-weight: 600;
     position: absolute;
+    transition-duration: 300ms;
 }
 
 .key{
@@ -112,4 +113,14 @@ body{
 
 .Piano-keys .white:nth-child(1){
     margin-left: 0px;
+}
+
+.black-pressed{
+    background: linear-gradient(#222, #000);
+    height: 148px;
+    border-bottom: none;
+}
+
+.disabled-keys span {
+    opacity: 0;
 }
