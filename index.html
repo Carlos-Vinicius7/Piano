@@ -5,7 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="CSS/Piano.css">
+    <link rel="icon" href="img/piano-de-cauda.png" type="image/x-icon">
     <title>Piano</title>
+    <!-- Midi Parser -->
+    <script src="https://unpkg.com/@tonejs/midi"></script>
 </head>
 
 <body>
@@ -49,8 +52,48 @@
             <div class="key white" data-notes="22"><span>]</span></div>
             <div class="key black" data-notes="23"><span>0</span></div>
             <div class="key white" data-notes="24"><span>-</span></div>
+            <div class="key white" data-notes="25"><span>z</span></div>
+            <div class="key black" data-notes="26"><span>s</span></div>
+            <div class="key white" data-notes="27"><span>x</span></div>
+            <div class="key black" data-notes="28"><span>d</span></div>
+            <div class="key white" data-notes="29"><span>c</span></div>
+            <div class="key white" data-notes="30"><span>v</span></div>
+            <div class="key black" data-notes="31"><span>g</span></div>
+            <div class="key white" data-notes="32"><span>b</span></div>
+            <div class="key black" data-notes="33"><span>h</span></div>
+            <div class="key white" data-notes="34"><span>n</span></div>
+            <div class="key black" data-notes="35"><span>j</span></div>
+            <div class="key white" data-notes="36"><span>m</span></div>
         </section>
 
+    </section>
+
+    <section class="Songs-Container">
+        <div class="Songs-Header">
+            <h2>Praticar Músicas</h2>
+            <div class="Songs-Header-Right">
+                <select id="song-select">
+                    <option value="" selected>Selecione uma música...</option>
+                    <option value="brilha">Brilha Brilha Estrelinha</option>
+                    <option value="parabens">Parabéns pra Você</option>
+                    <option value="custom">Adicionar música própria...</option>
+                    <option value="midi">Importar arquivo MIDI...</option>
+                </select>
+                <button id="auto-play-btn" disabled>▶ Auto Play</button>
+            </div>
+        </div>
+        <div class="Custom-Song-Input" id="custom-song-input" style="display: none;">
+            <input type="text" id="custom-sequence" placeholder="Cole as teclas separadas por espaço (ex: Tab w e 2)">
+            <button id="load-custom-song">Carregar</button>
+        </div>
+        <div class="Custom-Song-Input" id="midi-song-input" style="display: none;">
+            <label for="midi-file" class="file-label">Selecionar arquivo .mid</label>
+            <input type="file" id="midi-file" accept=".mid,.midi" style="display: none;">
+            <span id="midi-file-name" style="align-self: center; color: #888; font-size: 0.9rem;">Nenhum arquivo...</span>
+        </div>
+        <div class="Song-Sequence" id="song-sequence">
+            <!-- As notas aparecerão aqui -->
+        </div>
     </section>
 
     <script src="JavaScript/Piano.js"></script>

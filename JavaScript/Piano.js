@@ -26,6 +26,11 @@ const playNote = (note) => {
 const handleMousedown = (key) => {
     playNote(key.getAttribute('data-notes'));
 
+    if (typeof checkSongProgress === 'function') {
+        const noteChar = key.querySelector('span').textContent;
+        checkSongProgress(noteChar);
+    }
+
     if (key.className.includes('black')) {
         key.classList.add('black-pressed');
         return;
@@ -102,18 +107,30 @@ const keyNotesMap = {
     't': () => handleMousedown(keys[9]),
     '5': () => handleMousedown(keys[10]),
     'y': () => handleMousedown(keys[11]),
-    '6': () => handleMousedown(keys[12]),
-    'u': () => handleMousedown(keys[13]),
+    'u': () => handleMousedown(keys[12]),
+    '6': () => handleMousedown(keys[13]),
     'i': () => handleMousedown(keys[14]),
     '7': () => handleMousedown(keys[15]),
     'o': () => handleMousedown(keys[16]),
-    '8': () => handleMousedown(keys[17]),
-    'p': () => handleMousedown(keys[18]),
-    '9': () => handleMousedown(keys[19]),
-    '[': () => handleMousedown(keys[20]),
-    '0': () => handleMousedown(keys[21]),
-    ']': () => handleMousedown(keys[22]),
-    '-': () => handleMousedown(keys[23])
+    'p': () => handleMousedown(keys[17]),
+    '8': () => handleMousedown(keys[18]),
+    '[': () => handleMousedown(keys[19]),
+    '9': () => handleMousedown(keys[20]),
+    ']': () => handleMousedown(keys[21]),
+    '0': () => handleMousedown(keys[22]),
+    '-': () => handleMousedown(keys[23]),
+    'z': () => handleMousedown(keys[24]),
+    's': () => handleMousedown(keys[25]),
+    'x': () => handleMousedown(keys[26]),
+    'd': () => handleMousedown(keys[27]),
+    'c': () => handleMousedown(keys[28]),
+    'v': () => handleMousedown(keys[29]),
+    'g': () => handleMousedown(keys[30]),
+    'b': () => handleMousedown(keys[31]),
+    'h': () => handleMousedown(keys[32]),
+    'n': () => handleMousedown(keys[33]),
+    'j': () => handleMousedown(keys[34]),
+    'm': () => handleMousedown(keys[35])
 };
 
 const keyNotesMap2 = {
@@ -140,7 +157,19 @@ const keyNotesMap2 = {
     '9': () => handleMouseup(keys[20]),
     ']': () => handleMouseup(keys[21]),
     '0': () => handleMouseup(keys[22]),
-    '-': () => handleMouseup(keys[23])
+    '-': () => handleMouseup(keys[23]),
+    'z': () => handleMouseup(keys[24]),
+    's': () => handleMouseup(keys[25]),
+    'x': () => handleMouseup(keys[26]),
+    'd': () => handleMouseup(keys[27]),
+    'c': () => handleMouseup(keys[28]),
+    'v': () => handleMouseup(keys[29]),
+    'g': () => handleMouseup(keys[30]),
+    'b': () => handleMouseup(keys[31]),
+    'h': () => handleMouseup(keys[32]),
+    'n': () => handleMouseup(keys[33]),
+    'j': () => handleMouseup(keys[34]),
+    'm': () => handleMouseup(keys[35])
 };
 
 document.addEventListener('keydown', (event) => {
@@ -159,3 +188,320 @@ document.addEventListener('keyup', (event) => {
 
 // Inicializa o pré-carregamento dos áudios ao carregar a página
 preloadAudio();
+
+// Lógica de Sequência de Músicas
+function mapSimpleSequence(seq, interval = 0.4) {
+    return seq.map((key, i) => ({
+        key: key,
+        time: i * interval,
+        duration: interval * 0.8
+    }));
+}
+
+const songsData = {
+    'brilha': mapSimpleSequence(['Tab', 'Tab', 'w', 'w', 'e', 'e', 'w', '2', '2', 'q', 'q', '1', '1', 'Tab']),
+    'parabens': mapSimpleSequence(['Tab', 'Tab', '1', 'Tab', 'w', 'q', 'Tab', 'Tab', '1', 'Tab', 'e', 'w'])
+};
+
+let currentSongSequence = [];
+let currentNoteIndex = 0;
+
+const songSelect = document.getElementById('song-select');
+const customSongInput = document.getElementById('custom-song-input');
+const customSequenceInput = document.getElementById('custom-sequence');
+const loadCustomSongBtn = document.getElementById('load-custom-song');
+const midiSongInput = document.getElementById('midi-song-input');
+const midiFileInput = document.getElementById('midi-file');
+const midiFileName = document.getElementById('midi-file-name');
+const songSequenceContainer = document.getElementById('song-sequence');
+const autoPlayBtn = document.getElementById('auto-play-btn');
+let autoPlayInterval = null;
+
+const renderSongSequence = () => {
+    songSequenceContainer.innerHTML = '';
+    currentSongSequence.forEach((note, index) => {
+        const span = document.createElement('div');
+        span.classList.add('note-tag');
+        if (index === 0) span.classList.add('active');
+        
+        let displayNote = note.key;
+        if (displayNote.toLowerCase() === 'tab') displayNote = 'TAB';
+        span.textContent = displayNote;
+        
+        songSequenceContainer.appendChild(span);
+    });
+
+    if (currentSongSequence.length > 0) {
+        autoPlayBtn.disabled = false;
+    } else {
+        autoPlayBtn.disabled = true;
+    }
+};
+
+autoPlayBtn.addEventListener('click', () => {
+    if (autoPlayInterval) {
+        cancelAnimationFrame(autoPlayInterval);
+        autoPlayInterval = null;
+        autoPlayBtn.innerHTML = '▶ Auto Play';
+    } else {
+        autoPlayBtn.innerHTML = '⏸ Pausar';
+        
+        let startTime = performance.now() - (currentSongSequence[currentNoteIndex].time * 1000);
+        
+        const loop = () => {
+            if (currentNoteIndex >= currentSongSequence.length) {
+                autoPlayInterval = null;
+                autoPlayBtn.innerHTML = '▶ Auto Play';
+                return;
+            }
+            
+            const now = performance.now();
+            const elapsed = (now - startTime) / 1000;
+            const noteObj = currentSongSequence[currentNoteIndex];
+            
+            if (elapsed >= noteObj.time) {
+                const noteChar = noteObj.key;
+                let mapKey = noteChar;
+                if(mapKey.toLowerCase() === 'tab') mapKey = 'Tab';
+                
+                const keyFunc = keyNotesMap[mapKey];
+                if (keyFunc) {
+                    keyFunc();
+                    
+                    setTimeout(() => {
+                        const keyUpFunc = keyNotesMap2[mapKey];
+                        if(keyUpFunc) keyUpFunc();
+                    }, Math.min(noteObj.duration * 1000, 500));
+                } else {
+                    currentNoteIndex++;
+                }
+                
+                autoPlayInterval = requestAnimationFrame(loop);
+            } else {
+                autoPlayInterval = requestAnimationFrame(loop);
+            }
+        };
+        
+        autoPlayInterval = requestAnimationFrame(loop);
+    }
+});
+
+songSelect.addEventListener('change', (e) => {
+    const val = e.target.value;
+    if (val === 'custom') {
+        customSongInput.style.display = 'flex';
+        midiSongInput.style.display = 'none';
+        currentSongSequence = [];
+        songSequenceContainer.innerHTML = '';
+    } else if (val === 'midi') {
+        customSongInput.style.display = 'none';
+        midiSongInput.style.display = 'flex';
+        currentSongSequence = [];
+        songSequenceContainer.innerHTML = '';
+    } else {
+        customSongInput.style.display = 'none';
+        midiSongInput.style.display = 'none';
+        if (songsData[val]) {
+            currentSongSequence = [...songsData[val]];
+            currentNoteIndex = 0;
+            renderSongSequence();
+        } else {
+            currentSongSequence = [];
+            songSequenceContainer.innerHTML = '';
+        }
+    }
+});
+
+loadCustomSongBtn.addEventListener('click', () => {
+    const input = customSequenceInput.value.trim();
+    if (!input) return;
+    
+    const rawNotes = input.split(/[\s,]+/);
+    const validNotes = Object.keys(keyNotesMap);
+    
+    const parsedSequence = [];
+    rawNotes.forEach((n, i) => {
+        const found = validNotes.find(v => v.toLowerCase() === n.toLowerCase());
+        if (found) {
+            parsedSequence.push({
+                key: found,
+                time: i * 0.4,
+                duration: 0.3
+            });
+        }
+    });
+    
+    if (parsedSequence.length > 0) {
+        currentSongSequence = parsedSequence;
+        currentNoteIndex = 0;
+        renderSongSequence();
+    } else {
+        alert("Nenhuma nota válida encontrada. Use as teclas do piano (ex: Tab w e 2).");
+    }
+});
+
+function checkSongProgress(playedNote) {
+    if (currentSongSequence.length === 0 || currentNoteIndex >= currentSongSequence.length) return;
+    
+    const expectedNote = currentSongSequence[currentNoteIndex].key;
+    if (playedNote.toLowerCase() === expectedNote.toLowerCase()) {
+        const tags = songSequenceContainer.querySelectorAll('.note-tag');
+        if (tags[currentNoteIndex]) {
+            tags[currentNoteIndex].classList.remove('active');
+            tags[currentNoteIndex].classList.add('played');
+        }
+        
+        currentNoteIndex++;
+        
+        if (tags[currentNoteIndex]) {
+            const nextTag = tags[currentNoteIndex];
+            nextTag.classList.add('active');
+            
+            // Auto scroll to center the active tag
+            const containerCenter = songSequenceContainer.clientWidth / 2;
+            const tagCenter = nextTag.offsetLeft + (nextTag.clientWidth / 2);
+            songSequenceContainer.scrollTo({
+                left: tagCenter - containerCenter - songSequenceContainer.offsetLeft,
+                behavior: 'smooth'
+            });
+        }
+    }
+}
+
+// Lógica de importação MIDI
+const midiToKeyMap = {
+    60: 'Tab', 61: '1', 62: 'q', 63: '2', 64: 'w', 65: 'e', 66: '3', 67: 'r', 68: '4', 69: 't', 70: '5', 71: 'y',
+    72: 'u', 73: '6', 74: 'i', 75: '7', 76: 'o', 77: 'p', 78: '8', 79: '[', 80: '9', 81: ']', 82: '0', 83: '-',
+    84: 'z', 85: 's', 86: 'x', 87: 'd', 88: 'c', 89: 'v', 90: 'g', 91: 'b', 92: 'h', 93: 'n', 94: 'j', 95: 'm'
+};
+
+midiFileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+        midiFileName.textContent = "Nenhum arquivo...";
+        return;
+    }
+    
+    midiFileName.textContent = file.name;
+    
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        const midi = new Midi(arrayBuffer); 
+        
+        // ===== PASSO 1: Identificar a melhor track (melodia principal) =====
+        // Filtrar tracks que tenham notas e não sejam percussão (canal 10 / index 9)
+        const candidateTracks = [];
+        
+        midi.tracks.forEach((track, index) => {
+            // Ignorar tracks vazias
+            if (track.notes.length === 0) return;
+            
+            // Ignorar canal de percussão (canal 10 no MIDI = index 9)
+            if (track.channel === 9) return;
+            
+            // Calcular estatísticas da track
+            let sumPitch = 0;
+            let minPitch = 127;
+            let maxPitch = 0;
+            track.notes.forEach(n => {
+                sumPitch += n.midi;
+                if (n.midi < minPitch) minPitch = n.midi;
+                if (n.midi > maxPitch) maxPitch = n.midi;
+            });
+            const avgPitch = sumPitch / track.notes.length;
+            const range = maxPitch - minPitch;
+            
+            candidateTracks.push({
+                index: index,
+                track: track,
+                noteCount: track.notes.length,
+                avgPitch: avgPitch,
+                range: range,
+                name: track.name || `Track ${index + 1}`
+            });
+        });
+        
+        if (candidateTracks.length === 0) {
+            alert("Nenhuma track com notas válidas encontrada no arquivo MIDI.");
+            return;
+        }
+        
+        // ===== PASSO 2: Escolher a track de melodia =====
+        // Melodia geralmente é: pitch médio alto (não é baixo), range moderado,
+        // quantidade razoável de notas
+        // Priorizar: tracks com pitch médio entre 60-90 e quantidade significativa de notas
+        candidateTracks.sort((a, b) => {
+            // Score: preferir pitch médio-alto (melodia), com bom número de notas
+            const scoreA = a.avgPitch * 0.4 + Math.min(a.noteCount, 200) * 0.3 + (a.range < 40 ? 20 : 0);
+            const scoreB = b.avgPitch * 0.4 + Math.min(b.noteCount, 200) * 0.3 + (b.range < 40 ? 20 : 0);
+            return scoreB - scoreA;
+        });
+        
+        const melodyTrack = candidateTracks[0].track;
+        const melodyNotes = [...melodyTrack.notes];
+        
+        console.log(`🎵 Track selecionada: "${candidateTracks[0].name}" (${candidateTracks[0].noteCount} notas, pitch médio: ${candidateTracks[0].avgPitch.toFixed(1)})`);
+        
+        // Ordenar por tempo
+        melodyNotes.sort((a, b) => a.time - b.time);
+        
+        // ===== PASSO 3: Filtrar ghost notes (notas muito curtas) =====
+        const minDuration = 0.05; // 50ms mínimo
+        const filteredNotes = melodyNotes.filter(n => n.duration >= minDuration);
+        
+        // ===== PASSO 4: Transposição global da track =====
+        let sumPitch = 0;
+        filteredNotes.forEach(n => sumPitch += n.midi);
+        const avgPitch = filteredNotes.length > 0 ? sumPitch / filteredNotes.length : 78;
+        
+        // Centro do nosso piano: 78 (entre 60 e 95)
+        let octaveShift = 0;
+        while (avgPitch + octaveShift < 70) octaveShift += 12;
+        while (avgPitch + octaveShift > 85) octaveShift -= 12;
+        
+        // ===== PASSO 5: Construir sequência final com filtragem de acordes =====
+        const parsedSequence = [];
+        let lastTime = -1;
+        const chordThreshold = 0.05; // Notas dentro de 50ms = acorde
+        
+        filteredNotes.forEach(note => {
+            let midiNote = note.midi + octaveShift;
+            
+            // Fallback individual se ainda fora do range
+            while (midiNote < 60) midiNote += 12;
+            while (midiNote > 95) midiNote -= 12;
+            
+            if (midiToKeyMap[midiNote]) {
+                if (parsedSequence.length > 0 && Math.abs(note.time - lastTime) < chordThreshold) {
+                    // Acorde: manter a nota mais aguda (melodia)
+                    const lastNoteObj = parsedSequence[parsedSequence.length - 1];
+                    if (midiNote > lastNoteObj.originalMidi) {
+                        lastNoteObj.key = midiToKeyMap[midiNote];
+                        lastNoteObj.originalMidi = midiNote;
+                        lastNoteObj.duration = Math.max(lastNoteObj.duration, note.duration);
+                    }
+                } else {
+                    parsedSequence.push({
+                        key: midiToKeyMap[midiNote],
+                        time: note.time,
+                        duration: note.duration,
+                        originalMidi: midiNote
+                    });
+                    lastTime = note.time;
+                }
+            }
+        });
+        
+        if (parsedSequence.length > 0) {
+            currentSongSequence = parsedSequence;
+            currentNoteIndex = 0;
+            renderSongSequence();
+            console.log(`✅ ${parsedSequence.length} notas carregadas (de ${melodyNotes.length} originais). Transposição: ${octaveShift > 0 ? '+' : ''}${octaveShift} semitons.`);
+        } else {
+            alert("Nenhuma nota válida encontrada no arquivo MIDI.");
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Erro ao ler arquivo MIDI. Verifique se é um arquivo .mid válido.");
+    }
+});

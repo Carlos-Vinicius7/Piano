@@ -13,7 +13,7 @@ body{
 
 .Piano{
     background-color: #000;
-    width: 1000px;
+    width: 1400px;
     height: 400px;
     margin: 100px auto 0;
     border-radius: 20px;
@@ -107,7 +107,7 @@ body{
     color: rgba(255, 255, 255, 0.3);
 }
 
-.Piano-keys .white:nth-child(5), .Piano-keys .white:nth-child(12), .Piano-keys .white:nth-child(17) {
+.Piano-keys .white:nth-child(5), .Piano-keys .white:nth-child(12), .Piano-keys .white:nth-child(17), .Piano-keys .white:nth-child(24), .Piano-keys .white:nth-child(29), .Piano-keys .white:nth-child(36) {
     margin-right: 20px;
 }
 
@@ -123,4 +123,154 @@ body{
 
 .disabled-keys span {
     opacity: 0;
+}
+
+/* Song Sequence Styles */
+.Songs-Container {
+    background: linear-gradient(135deg, #111, #222);
+    padding: 25px 35px;
+    border-radius: 20px;
+    width: 1400px;
+    margin: 20px auto 100px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.Songs-Header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.Songs-Header-Right {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.Songs-Header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+select#song-select {
+    background-color: #333;
+    color: white;
+    border: 1px solid #444;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    outline: none;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+select#song-select:hover {
+    border-color: #006eff;
+}
+
+.Custom-Song-Input {
+    display: flex;
+    gap: 10px;
+}
+
+.Custom-Song-Input input {
+    flex-grow: 1;
+    background-color: #333;
+    color: white;
+    border: 1px solid #444;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    outline: none;
+    transition: 0.3s;
+}
+
+.Custom-Song-Input input:focus {
+    border-color: #006eff;
+}
+
+.Custom-Song-Input button, .file-label, #auto-play-btn {
+    background-color: #006eff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.3s;
+    text-align: center;
+}
+
+.Custom-Song-Input button:hover, .file-label:hover, #auto-play-btn:hover {
+    background-color: #0056cc;
+}
+
+#auto-play-btn:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+.Song-Sequence {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 10px;
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    min-height: 80px;
+    align-items: center;
+}
+
+/* Custom Scrollbar for Song Sequence */
+.Song-Sequence::-webkit-scrollbar {
+    height: 8px;
+}
+.Song-Sequence::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+.Song-Sequence::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+}
+.Song-Sequence::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+}
+
+.note-tag {
+    background-color: #fff;
+    color: #000;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 -2px 0px #ddd inset;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.note-tag.active {
+    background-color: #006eff;
+    color: #fff;
+    box-shadow: 0 0 15px rgba(0, 110, 255, 0.6), 0 -2px 0px rgba(0, 80, 200, 0.8) inset;
+    transform: translateY(2px);
+}
+
+.note-tag.played {
+    background-color: #444;
+    color: #888;
+    box-shadow: none;
+    border: 1px solid #333;
 }
