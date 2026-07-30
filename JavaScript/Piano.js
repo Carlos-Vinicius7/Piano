@@ -3,10 +3,24 @@ const checkbox = document.querySelector('.checkbox-keys');
 const switcher = document.querySelector('.switcher');
 const pianoKeys = document.querySelector('.Piano-keys');
 
+// Objeto para armazenar os áudios pré-carregados (elimina o atraso)
+const audioCache = {};
+
+const preloadAudio = () => {
+    keys.forEach(key => {
+        const note = key.getAttribute('data-notes');
+        const audio = new Audio(`../Notes/${note}.wav`);
+        audio.preload = 'auto';
+        audioCache[note] = audio;
+    });
+};
+
 const playNote = (note) => {
-    const audio = new Audio(`../Notes/${note}.wav`);
-    audio.currentTime = 0; // Permite tocar a nota rapidamente de novo
-    audio.play();
+    const audio = audioCache[note];
+    if (audio) {
+        audio.currentTime = 0; // Reseta o som para permitir notas rápidas seguidas
+        audio.play().catch(e => console.log("Erro ao reproduzir:", e));
+    }
 }
 
 const handleMousedown = (key) => {
@@ -29,13 +43,11 @@ const handleMouseup = (key) => {
     key.style.background = 'white';
 }
 
-// Eventos de Mouse e Touch para mobile
+// Eventos de Mouse e Touch tradicionais
 keys.forEach(key => {
-    // Mouse
     key.addEventListener('mousedown', () => handleMousedown(key));
     key.addEventListener('mouseup', () => handleMouseup(key));
 
-    // Touch (Celular/Tablet)
     key.addEventListener('touchstart', (e) => {
         e.preventDefault();
         handleMousedown(key);
@@ -45,6 +57,26 @@ keys.forEach(key => {
         handleMouseup(key);
     });
 });
+
+// Suporte para deslizar o dedo pelas teclas no celular (Glissando)
+pianoKeys.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    
+    if (target && target.classList.contains('key')) {
+        const note = target.getAttribute('data-notes');
+        if (!target.dataset.active) {
+            target.dataset.active = "true";
+            handleMousedown(target);
+            
+            target.addEventListener('touchend', () => {
+                delete target.dataset.active;
+                handleMouseup(target);
+            }, { once: true });
+        }
+    }
+}, { passive: false });
 
 checkbox.addEventListener('change', ({target}) => {
     if(target.checked){
@@ -124,3 +156,6 @@ document.addEventListener('keyup', (event) => {
         keyNotesMap2[event.key]();
     }
 });
+
+// Inicializa o pré-carregamento dos áudios ao carregar a página
+preloadAudio();
