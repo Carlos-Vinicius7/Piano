@@ -388,9 +388,9 @@ midiFileInput.addEventListener('change', async (e) => {
         const arrayBuffer = await file.arrayBuffer();
         const midi = new Midi(arrayBuffer); 
         
-        // ===== PASSO 1: Identificar a melhor track (melodia principal) =====
-        // Filtrar tracks que tenham notas e não sejam percussão (canal 10 / index 9)
-        const candidateTracks = [];
+        // ===== PASSO 1: Coletar TODAS as notas de TODAS as tracks (exceto percussão) =====
+        let allNotes = [];
+        let tracksUsed = 0;
         
         midi.tracks.forEach((track, index) => {
             // Ignorar tracks vazias
@@ -399,57 +399,30 @@ midiFileInput.addEventListener('change', async (e) => {
             // Ignorar canal de percussão (canal 10 no MIDI = index 9)
             if (track.channel === 9) return;
             
-            // Calcular estatísticas da track
-            let sumPitch = 0;
-            let minPitch = 127;
-            let maxPitch = 0;
-            track.notes.forEach(n => {
-                sumPitch += n.midi;
-                if (n.midi < minPitch) minPitch = n.midi;
-                if (n.midi > maxPitch) maxPitch = n.midi;
-            });
-            const avgPitch = sumPitch / track.notes.length;
-            const range = maxPitch - minPitch;
+            tracksUsed++;
+            const trackName = track.name || `Track ${index + 1}`;
+            console.log(`🎵 Track incluída: "${trackName}" (${track.notes.length} notas)`);
             
-            candidateTracks.push({
-                index: index,
-                track: track,
-                noteCount: track.notes.length,
-                avgPitch: avgPitch,
-                range: range,
-                name: track.name || `Track ${index + 1}`
+            track.notes.forEach(note => {
+                allNotes.push(note);
             });
         });
         
-        if (candidateTracks.length === 0) {
-            alert("Nenhuma track com notas válidas encontrada no arquivo MIDI.");
+        if (allNotes.length === 0) {
+            alert("Nenhuma nota válida encontrada no arquivo MIDI.");
             return;
         }
         
-        // ===== PASSO 2: Escolher a track de melodia =====
-        // Melodia geralmente é: pitch médio alto (não é baixo), range moderado,
-        // quantidade razoável de notas
-        // Priorizar: tracks com pitch médio entre 60-90 e quantidade significativa de notas
-        candidateTracks.sort((a, b) => {
-            // Score: preferir pitch médio-alto (melodia), com bom número de notas
-            const scoreA = a.avgPitch * 0.4 + Math.min(a.noteCount, 200) * 0.3 + (a.range < 40 ? 20 : 0);
-            const scoreB = b.avgPitch * 0.4 + Math.min(b.noteCount, 200) * 0.3 + (b.range < 40 ? 20 : 0);
-            return scoreB - scoreA;
-        });
+        console.log(`📊 Total: ${allNotes.length} notas de ${tracksUsed} tracks`);
         
-        const melodyTrack = candidateTracks[0].track;
-        const melodyNotes = [...melodyTrack.notes];
-        
-        console.log(`🎵 Track selecionada: "${candidateTracks[0].name}" (${candidateTracks[0].noteCount} notas, pitch médio: ${candidateTracks[0].avgPitch.toFixed(1)})`);
-        
-        // Ordenar por tempo
-        melodyNotes.sort((a, b) => a.time - b.time);
+        // ===== PASSO 2: Ordenar todas as notas por tempo cronológico =====
+        allNotes.sort((a, b) => a.time - b.time);
         
         // ===== PASSO 3: Filtrar ghost notes (notas muito curtas) =====
         const minDuration = 0.05; // 50ms mínimo
-        const filteredNotes = melodyNotes.filter(n => n.duration >= minDuration);
+        const filteredNotes = allNotes.filter(n => n.duration >= minDuration);
         
-        // ===== PASSO 4: Transposição global da track =====
+        // ===== PASSO 4: Transposição global de todas as notas =====
         let sumPitch = 0;
         filteredNotes.forEach(n => sumPitch += n.midi);
         const avgPitch = filteredNotes.length > 0 ? sumPitch / filteredNotes.length : 78;
@@ -496,7 +469,7 @@ midiFileInput.addEventListener('change', async (e) => {
             currentSongSequence = parsedSequence;
             currentNoteIndex = 0;
             renderSongSequence();
-            console.log(`✅ ${parsedSequence.length} notas carregadas (de ${melodyNotes.length} originais). Transposição: ${octaveShift > 0 ? '+' : ''}${octaveShift} semitons.`);
+            console.log(`✅ ${parsedSequence.length} notas carregadas (de ${allNotes.length} originais). Transposição: ${octaveShift > 0 ? '+' : ''}${octaveShift} semitons.`);
         } else {
             alert("Nenhuma nota válida encontrada no arquivo MIDI.");
         }
