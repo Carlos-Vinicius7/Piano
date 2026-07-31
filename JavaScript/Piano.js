@@ -15,16 +15,18 @@ const preloadAudio = () => {
     });
 };
 
-const playNote = (note) => {
+const playNote = (note, velocity = 0.7) => {
     const audio = audioCache[note];
     if (audio) {
-        audio.currentTime = 0; // Reseta o som para permitir notas rápidas seguidas
-        audio.play().catch(e => console.log("Erro ao reproduzir:", e));
+        // Usa cloneNode para permitir que a mesma nota toque por cima de si mesma sem cortar o final da anterior (suaviza o som)
+        const clone = audio.cloneNode();
+        clone.volume = Math.min(Math.max(velocity, 0.1), 1.0); // Garante que fique entre 0.1 e 1.0
+        clone.play().catch(e => console.log("Erro ao reproduzir:", e));
     }
 }
 
-const handleMousedown = (key) => {
-    playNote(key.getAttribute('data-notes'));
+const handleMousedown = (key, velocity = 0.7) => {
+    playNote(key.getAttribute('data-notes'), velocity);
 
     if (typeof checkSongProgress === 'function') {
         const noteChar = key.querySelector('span').textContent;
@@ -95,42 +97,42 @@ checkbox.addEventListener('change', ({target}) => {
 });
 
 const keyNotesMap = {
-    'Tab': () => handleMousedown(keys[0]),
-    '1': () => handleMousedown(keys[1]),
-    'q': () => handleMousedown(keys[2]),
-    '2': () => handleMousedown(keys[3]),
-    'w': () => handleMousedown(keys[4]),
-    'e': () => handleMousedown(keys[5]),
-    '3': () => handleMousedown(keys[6]),
-    'r': () => handleMousedown(keys[7]),
-    '4': () => handleMousedown(keys[8]),
-    't': () => handleMousedown(keys[9]),
-    '5': () => handleMousedown(keys[10]),
-    'y': () => handleMousedown(keys[11]),
-    'u': () => handleMousedown(keys[12]),
-    '6': () => handleMousedown(keys[13]),
-    'i': () => handleMousedown(keys[14]),
-    '7': () => handleMousedown(keys[15]),
-    'o': () => handleMousedown(keys[16]),
-    'p': () => handleMousedown(keys[17]),
-    '8': () => handleMousedown(keys[18]),
-    '[': () => handleMousedown(keys[19]),
-    '9': () => handleMousedown(keys[20]),
-    ']': () => handleMousedown(keys[21]),
-    '0': () => handleMousedown(keys[22]),
-    '-': () => handleMousedown(keys[23]),
-    'z': () => handleMousedown(keys[24]),
-    's': () => handleMousedown(keys[25]),
-    'x': () => handleMousedown(keys[26]),
-    'd': () => handleMousedown(keys[27]),
-    'c': () => handleMousedown(keys[28]),
-    'v': () => handleMousedown(keys[29]),
-    'g': () => handleMousedown(keys[30]),
-    'b': () => handleMousedown(keys[31]),
-    'h': () => handleMousedown(keys[32]),
-    'n': () => handleMousedown(keys[33]),
-    'j': () => handleMousedown(keys[34]),
-    'm': () => handleMousedown(keys[35])
+    'Tab': (v) => handleMousedown(keys[0], v),
+    '1': (v) => handleMousedown(keys[1], v),
+    'q': (v) => handleMousedown(keys[2], v),
+    '2': (v) => handleMousedown(keys[3], v),
+    'w': (v) => handleMousedown(keys[4], v),
+    'e': (v) => handleMousedown(keys[5], v),
+    '3': (v) => handleMousedown(keys[6], v),
+    'r': (v) => handleMousedown(keys[7], v),
+    '4': (v) => handleMousedown(keys[8], v),
+    't': (v) => handleMousedown(keys[9], v),
+    '5': (v) => handleMousedown(keys[10], v),
+    'y': (v) => handleMousedown(keys[11], v),
+    'u': (v) => handleMousedown(keys[12], v),
+    '6': (v) => handleMousedown(keys[13], v),
+    'i': (v) => handleMousedown(keys[14], v),
+    '7': (v) => handleMousedown(keys[15], v),
+    'o': (v) => handleMousedown(keys[16], v),
+    'p': (v) => handleMousedown(keys[17], v),
+    '8': (v) => handleMousedown(keys[18], v),
+    '[': (v) => handleMousedown(keys[19], v),
+    '9': (v) => handleMousedown(keys[20], v),
+    ']': (v) => handleMousedown(keys[21], v),
+    '0': (v) => handleMousedown(keys[22], v),
+    '-': (v) => handleMousedown(keys[23], v),
+    'z': (v) => handleMousedown(keys[24], v),
+    's': (v) => handleMousedown(keys[25], v),
+    'x': (v) => handleMousedown(keys[26], v),
+    'd': (v) => handleMousedown(keys[27], v),
+    'c': (v) => handleMousedown(keys[28], v),
+    'v': (v) => handleMousedown(keys[29], v),
+    'g': (v) => handleMousedown(keys[30], v),
+    'b': (v) => handleMousedown(keys[31], v),
+    'h': (v) => handleMousedown(keys[32], v),
+    'n': (v) => handleMousedown(keys[33], v),
+    'j': (v) => handleMousedown(keys[34], v),
+    'm': (v) => handleMousedown(keys[35], v)
 };
 
 const keyNotesMap2 = {
@@ -190,17 +192,43 @@ document.addEventListener('keyup', (event) => {
 preloadAudio();
 
 // Lógica de Sequência de Músicas
-function mapSimpleSequence(seq, interval = 0.4) {
-    return seq.map((key, i) => ({
-        key: key,
-        time: i * interval,
-        duration: interval * 0.8
-    }));
-}
+const brilhaData = [
+    {key: 'Tab', time: 0.0, duration: 0.4},
+    {key: 'Tab', time: 0.5, duration: 0.4},
+    {key: 'r', time: 1.0, duration: 0.4},
+    {key: 'r', time: 1.5, duration: 0.4},
+    {key: 't', time: 2.0, duration: 0.4},
+    {key: 't', time: 2.5, duration: 0.4},
+    {key: 'r', time: 3.0, duration: 0.8},
+    
+    {key: 'e', time: 4.0, duration: 0.4},
+    {key: 'e', time: 4.5, duration: 0.4},
+    {key: 'w', time: 5.0, duration: 0.4},
+    {key: 'w', time: 5.5, duration: 0.4},
+    {key: 'q', time: 6.0, duration: 0.4},
+    {key: 'q', time: 6.5, duration: 0.4},
+    {key: 'Tab', time: 7.0, duration: 0.8}
+];
+
+const parabensData = [
+    {key: 'Tab', time: 0.0, duration: 0.3},
+    {key: 'Tab', time: 0.4, duration: 0.3},
+    {key: 'q', time: 0.8, duration: 0.6},
+    {key: 'Tab', time: 1.6, duration: 0.6},
+    {key: 'e', time: 2.4, duration: 0.6},
+    {key: 'w', time: 3.2, duration: 1.0},
+    
+    {key: 'Tab', time: 4.6, duration: 0.3},
+    {key: 'Tab', time: 5.0, duration: 0.3},
+    {key: 'q', time: 5.4, duration: 0.6},
+    {key: 'Tab', time: 6.2, duration: 0.6},
+    {key: 'r', time: 7.0, duration: 0.6},
+    {key: 'e', time: 7.8, duration: 1.0}
+];
 
 const songsData = {
-    'brilha': mapSimpleSequence(['Tab', 'Tab', 'w', 'w', 'e', 'e', 'w', '2', '2', 'q', 'q', '1', '1', 'Tab']),
-    'parabens': mapSimpleSequence(['Tab', 'Tab', '1', 'Tab', 'w', 'q', 'Tab', 'Tab', '1', 'Tab', 'e', 'w'])
+    'brilha': brilhaData,
+    'parabens': parabensData
 };
 
 let currentSongSequence = [];
@@ -215,14 +243,41 @@ const midiFileInput = document.getElementById('midi-file');
 const midiFileName = document.getElementById('midi-file-name');
 const songSequenceContainer = document.getElementById('song-sequence');
 const autoPlayBtn = document.getElementById('auto-play-btn');
+const restartBtn = document.getElementById('restart-song-btn');
 let autoPlayInterval = null;
+
+function updateActiveTags() {
+    const tags = songSequenceContainer.querySelectorAll('.note-tag');
+    if (currentNoteIndex >= currentSongSequence.length) return;
+    
+    const currentTime = currentSongSequence[currentNoteIndex].time;
+    let i = currentNoteIndex;
+    
+    // Ativar todas as notas que ocorrem no mesmo momento (acordes)
+    while (i < currentSongSequence.length && Math.abs(currentSongSequence[i].time - currentTime) < 0.05) {
+        if (tags[i] && !tags[i].classList.contains('played')) {
+            tags[i].classList.add('active');
+        }
+        i++;
+    }
+    
+    // Scroll para manter a nota atual visível
+    if (tags[currentNoteIndex]) {
+        const nextTag = tags[currentNoteIndex];
+        const containerCenter = songSequenceContainer.clientWidth / 2;
+        const tagCenter = nextTag.offsetLeft + (nextTag.clientWidth / 2);
+        songSequenceContainer.scrollTo({
+            left: tagCenter - containerCenter - songSequenceContainer.offsetLeft,
+            behavior: 'smooth'
+        });
+    }
+}
 
 const renderSongSequence = () => {
     songSequenceContainer.innerHTML = '';
-    currentSongSequence.forEach((note, index) => {
+    currentSongSequence.forEach((note) => {
         const span = document.createElement('div');
         span.classList.add('note-tag');
-        if (index === 0) span.classList.add('active');
         
         let displayNote = note.key;
         if (displayNote.toLowerCase() === 'tab') displayNote = 'TAB';
@@ -233,10 +288,30 @@ const renderSongSequence = () => {
 
     if (currentSongSequence.length > 0) {
         autoPlayBtn.disabled = false;
+        restartBtn.disabled = false;
+        updateActiveTags();
     } else {
         autoPlayBtn.disabled = true;
+        restartBtn.disabled = true;
     }
 };
+
+restartBtn.addEventListener('click', () => {
+    currentNoteIndex = 0;
+    const tags = songSequenceContainer.querySelectorAll('.note-tag');
+    tags.forEach(t => {
+        t.classList.remove('played');
+        t.classList.remove('active');
+    });
+    
+    updateActiveTags();
+    
+    if (autoPlayInterval) {
+        cancelAnimationFrame(autoPlayInterval);
+        autoPlayInterval = null;
+        autoPlayBtn.innerHTML = '▶ Auto Play';
+    }
+});
 
 autoPlayBtn.addEventListener('click', () => {
     if (autoPlayInterval) {
@@ -244,12 +319,17 @@ autoPlayBtn.addEventListener('click', () => {
         autoPlayInterval = null;
         autoPlayBtn.innerHTML = '▶ Auto Play';
     } else {
+        if (currentNoteIndex >= currentSongSequence.length) {
+            restartBtn.click();
+        }
+        
         autoPlayBtn.innerHTML = '⏸ Pausar';
         
-        let startTime = performance.now() - (currentSongSequence[currentNoteIndex].time * 1000);
+        let autoPlayIndex = currentNoteIndex;
+        let startTime = performance.now() - (currentSongSequence[autoPlayIndex].time * 1000);
         
         const loop = () => {
-            if (currentNoteIndex >= currentSongSequence.length) {
+            if (autoPlayIndex >= currentSongSequence.length) {
                 autoPlayInterval = null;
                 autoPlayBtn.innerHTML = '▶ Auto Play';
                 return;
@@ -257,29 +337,27 @@ autoPlayBtn.addEventListener('click', () => {
             
             const now = performance.now();
             const elapsed = (now - startTime) / 1000;
-            const noteObj = currentSongSequence[currentNoteIndex];
             
-            if (elapsed >= noteObj.time) {
+            while (autoPlayIndex < currentSongSequence.length && currentSongSequence[autoPlayIndex].time <= elapsed) {
+                const noteObj = currentSongSequence[autoPlayIndex];
                 const noteChar = noteObj.key;
                 let mapKey = noteChar;
-                if(mapKey.toLowerCase() === 'tab') mapKey = 'Tab';
+                if (mapKey.toLowerCase() === 'tab') mapKey = 'Tab';
                 
                 const keyFunc = keyNotesMap[mapKey];
                 if (keyFunc) {
-                    keyFunc();
+                    const vel = noteObj.velocity !== undefined ? noteObj.velocity : 0.7;
+                    keyFunc(vel); // Isso também dispara checkSongProgress e atualiza a UI
                     
                     setTimeout(() => {
                         const keyUpFunc = keyNotesMap2[mapKey];
                         if(keyUpFunc) keyUpFunc();
                     }, Math.min(noteObj.duration * 1000, 500));
-                } else {
-                    currentNoteIndex++;
                 }
-                
-                autoPlayInterval = requestAnimationFrame(loop);
-            } else {
-                autoPlayInterval = requestAnimationFrame(loop);
+                autoPlayIndex++;
             }
+            
+            autoPlayInterval = requestAnimationFrame(loop);
         };
         
         autoPlayInterval = requestAnimationFrame(loop);
@@ -293,11 +371,15 @@ songSelect.addEventListener('change', (e) => {
         midiSongInput.style.display = 'none';
         currentSongSequence = [];
         songSequenceContainer.innerHTML = '';
+        autoPlayBtn.disabled = true;
+        restartBtn.disabled = true;
     } else if (val === 'midi') {
         customSongInput.style.display = 'none';
         midiSongInput.style.display = 'flex';
         currentSongSequence = [];
         songSequenceContainer.innerHTML = '';
+        autoPlayBtn.disabled = true;
+        restartBtn.disabled = true;
     } else {
         customSongInput.style.display = 'none';
         midiSongInput.style.display = 'none';
@@ -308,6 +390,8 @@ songSelect.addEventListener('change', (e) => {
         } else {
             currentSongSequence = [];
             songSequenceContainer.innerHTML = '';
+            autoPlayBtn.disabled = true;
+            restartBtn.disabled = true;
         }
     }
 });
@@ -343,27 +427,38 @@ loadCustomSongBtn.addEventListener('click', () => {
 function checkSongProgress(playedNote) {
     if (currentSongSequence.length === 0 || currentNoteIndex >= currentSongSequence.length) return;
     
-    const expectedNote = currentSongSequence[currentNoteIndex].key;
-    if (playedNote.toLowerCase() === expectedNote.toLowerCase()) {
+    const currentTime = currentSongSequence[currentNoteIndex].time;
+    let i = currentNoteIndex;
+    let foundMatchIndex = -1;
+    
+    // Procura na janela do acorde atual
+    while (i < currentSongSequence.length && Math.abs(currentSongSequence[i].time - currentTime) < 0.05) {
         const tags = songSequenceContainer.querySelectorAll('.note-tag');
-        if (tags[currentNoteIndex]) {
-            tags[currentNoteIndex].classList.remove('active');
-            tags[currentNoteIndex].classList.add('played');
+        if (tags[i] && !tags[i].classList.contains('played') && currentSongSequence[i].key.toLowerCase() === playedNote.toLowerCase()) {
+            foundMatchIndex = i;
+            break;
+        }
+        i++;
+    }
+    
+    if (foundMatchIndex !== -1) {
+        const tags = songSequenceContainer.querySelectorAll('.note-tag');
+        tags[foundMatchIndex].classList.remove('active');
+        tags[foundMatchIndex].classList.add('played');
+        
+        let allPlayed = true;
+        let j = currentNoteIndex;
+        while (j < currentSongSequence.length && Math.abs(currentSongSequence[j].time - currentTime) < 0.05) {
+            if (!tags[j].classList.contains('played')) {
+                allPlayed = false;
+                break;
+            }
+            j++;
         }
         
-        currentNoteIndex++;
-        
-        if (tags[currentNoteIndex]) {
-            const nextTag = tags[currentNoteIndex];
-            nextTag.classList.add('active');
-            
-            // Auto scroll to center the active tag
-            const containerCenter = songSequenceContainer.clientWidth / 2;
-            const tagCenter = nextTag.offsetLeft + (nextTag.clientWidth / 2);
-            songSequenceContainer.scrollTo({
-                left: tagCenter - containerCenter - songSequenceContainer.offsetLeft,
-                behavior: 'smooth'
-            });
+        if (allPlayed) {
+            currentNoteIndex = j;
+            updateActiveTags();
         }
     }
 }
@@ -432,10 +527,8 @@ midiFileInput.addEventListener('change', async (e) => {
         while (avgPitch + octaveShift < 70) octaveShift += 12;
         while (avgPitch + octaveShift > 85) octaveShift -= 12;
         
-        // ===== PASSO 5: Construir sequência final com filtragem de acordes =====
+        // ===== PASSO 5: Construir sequência final SEM filtragem de acordes =====
         const parsedSequence = [];
-        let lastTime = -1;
-        const chordThreshold = 0.05; // Notas dentro de 50ms = acorde
         
         filteredNotes.forEach(note => {
             let midiNote = note.midi + octaveShift;
@@ -445,23 +538,12 @@ midiFileInput.addEventListener('change', async (e) => {
             while (midiNote > 95) midiNote -= 12;
             
             if (midiToKeyMap[midiNote]) {
-                if (parsedSequence.length > 0 && Math.abs(note.time - lastTime) < chordThreshold) {
-                    // Acorde: manter a nota mais aguda (melodia)
-                    const lastNoteObj = parsedSequence[parsedSequence.length - 1];
-                    if (midiNote > lastNoteObj.originalMidi) {
-                        lastNoteObj.key = midiToKeyMap[midiNote];
-                        lastNoteObj.originalMidi = midiNote;
-                        lastNoteObj.duration = Math.max(lastNoteObj.duration, note.duration);
-                    }
-                } else {
-                    parsedSequence.push({
-                        key: midiToKeyMap[midiNote],
-                        time: note.time,
-                        duration: note.duration,
-                        originalMidi: midiNote
-                    });
-                    lastTime = note.time;
-                }
+                parsedSequence.push({
+                    key: midiToKeyMap[midiNote],
+                    time: note.time,
+                    duration: note.duration,
+                    originalMidi: midiNote
+                });
             }
         });
         

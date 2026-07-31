@@ -197,7 +197,7 @@ select#song-select:hover {
     border-color: #006eff;
 }
 
-.Custom-Song-Input button, .file-label, #auto-play-btn {
+.Custom-Song-Input button, .file-label, #auto-play-btn, #restart-song-btn {
     background-color: #006eff;
     color: white;
     border: none;
@@ -211,11 +211,11 @@ select#song-select:hover {
     text-align: center;
 }
 
-.Custom-Song-Input button:hover, .file-label:hover, #auto-play-btn:hover {
+.Custom-Song-Input button:hover, .file-label:hover, #auto-play-btn:hover, #restart-song-btn:hover {
     background-color: #0056cc;
 }
 
-#auto-play-btn:disabled {
+#auto-play-btn:disabled, #restart-song-btn:disabled {
     background-color: #555;
     cursor: not-allowed;
 }
